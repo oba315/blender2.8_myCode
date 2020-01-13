@@ -14,14 +14,14 @@ lines = [x.body.split() for x in text.lines]
 
 inverse = True
 
-
+# 選択されているボーンについて
 # 最も長く一致した文字列で置換
 a = 1 if inverse else 0
 b = 0 if inverse else 1
 buffer = [0, "befor", "after"]
 for bone in bpy.context.object.data.bones:
     for pair in lines:
-        if(pair[a] in bone.name && buffer[0] < len(pair[a]):
+        if pair[a] in bone.name and buffer[0] < len(pair[a]):
             buffer = [ len(pair[a]), pair[a], pair[b] ]
 
     if (buffer[0] != 0):
