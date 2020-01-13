@@ -1,8 +1,37 @@
 import bpy
+import sys
 
-for x in bpy.context.object.data.bones:
-    if x.name[-2:] == '.R':
-        x.name = '右' + x.name[:-2]
+print("\nRename Bone from dictionary")
+ 
+fn = "bone_name_dict.txt"
+
+# read dictionary
+text = bpy.data.texts.get(fn)
+if text == None:
+    print ('ERROR : text "'+fn+  '" is not exist.')
+lines = [x.body.split() for x in text.lines]
+
+
+inverse = True
+
+
+# 最も長く一致した文字列で置換
+a = 1 if inverse else 0
+b = 0 if inverse else 1
+buffer = [0, "befor", "after"]
+for bone in bpy.context.object.data.bones:
+    for pair in lines:
+        if(pair[a] in bone.name && buffer[0] < len(pair[a]):
+            buffer = [ len(pair[a]), pair[a], pair[b] ]
+
+    if (buffer[0] != 0):
+        bone.name = bone.name.replace( buffer[1], buffer[2])
     
-    if x.name[-2:] == '.L':
-        x.name = '左' + x.name[:-2]
+    buffer[0] = 0
+
+    
+
+
+        
+        
+#f.close()
