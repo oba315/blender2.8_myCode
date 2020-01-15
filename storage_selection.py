@@ -12,24 +12,44 @@ bl_info = {
     "category": "Object"
 }
 
+# 可能な拡張
+# 辺、面選択モードへの対応
+# 選択記憶をオブジェクト単位にするか？
+# 頂点番号がはみ出したときのエラー処理
+
 import bpy
 from bpy.props import ( IntProperty )
 
 
 def storage_selection_func(index):
     
-    
+    # なぜかエディットモードを出ないと更新されない
     obj = bpy.context.active_object
+    old_mode = obj.mode
+    bpy.ops.object.mode_set(mode='OBJECT')
         
-    # なぜかここがエディットモードを出ないと更新されない
     selected = [v.index for v in obj.data.vertices if v.select]
     print(selected)
     
     # とりあえずシーンにカスタムプロパティを作るけどオブジェクトに作ったほうがいいかも？
     scene = bpy.context.scene
     scene["storage_selection_"+str(index)] = selected
+    
+    bpy.ops.object.mode_set(mode=old_mode)
 
-
+def call_selection_func(index):
+    
+    obj = bpy.context.active_object
+    old_mode = obj.mode
+    
+    bpy.ops.object.mode_set(mode="EDIT") #Activating Editmode
+    bpy.ops.mesh.select_all(action='DESELECT')
+    
+    bpy.ops.object.mode_set(mode='OBJECT')    
+    for p in bpy.context.scene["storage_selection_"+str(index)] :
+        obj.data.vertices[p].select = True
+        
+    bpy.ops.object.mode_set(mode=old_mode)
 
 
 
@@ -61,7 +81,35 @@ class MYADDON_OP_StorageSelection4(bpy.types.Operator):
         storage_selection_func(4)
         return {'FINISHED'}
 
+class MYADDON_OP_CallSelection1(bpy.types.Operator):
+    bl_idname = "buttons.callslection1"     # 必須
+    bl_label = "StorageSelection"             # 必須
+    def execute(self, context):
+        call_selection_func(1)
+        return {'FINISHED'}
     
+
+class MYADDON_OP_CallSelection2(bpy.types.Operator):
+    bl_idname = "buttons.callslection2"     # 必須
+    bl_label = "StorageSelection"             # 必須
+    def execute(self, context):
+        call_selection_func(2)
+        return {'FINISHED'}
+
+class MYADDON_OP_CallSelection3(bpy.types.Operator):
+    bl_idname = "buttons.callslection3"     # 必須
+    bl_label = "StorageSelection"             # 必須
+    def execute(self, context):
+        call_selection_func(3)
+        return {'FINISHED'}
+    
+
+class MYADDON_OP_CallSelection4(bpy.types.Operator):
+    bl_idname = "buttons.callslection4"     # 必須
+    bl_label = "StorageSelection"             # 必須
+    def execute(self, context):
+        call_selection_func(4)
+        return {'FINISHED'}
     
 class MYADDON_PT_StorageSelectionPanel(bpy.types.Panel):
     bl_label = "選択頂点を保存"          # パネルのヘッダに表示される文字列
@@ -90,16 +138,28 @@ class MYADDON_PT_StorageSelectionPanel(bpy.types.Panel):
         row.operator(MYADDON_OP_StorageSelection3.bl_idname, text="3")
         row.operator(MYADDON_OP_StorageSelection4.bl_idname, text="4")
 
+        layout.separator()
+        
         layout.label(text="選択頂点を呼び出し")
         row = layout.row(align=True)
-        for i in range(4):
-            pass#row.operator(MYADDON_OP_StorageSelection.bl_idname, text=(str(i)))
-
+        
+        row.operator(MYADDON_OP_CallSelection1.bl_idname, text="1")
+        row.operator(MYADDON_OP_CallSelection2.bl_idname, text="2")
+        row.operator(MYADDON_OP_CallSelection3.bl_idname, text="3")
+        row.operator(MYADDON_OP_CallSelection4.bl_idname, text="4")
+        
+        
+    
+        
 classes = [
     MYADDON_OP_StorageSelection1,
     MYADDON_OP_StorageSelection2,
     MYADDON_OP_StorageSelection3,
     MYADDON_OP_StorageSelection4,
+    MYADDON_OP_CallSelection1,
+    MYADDON_OP_CallSelection2,
+    MYADDON_OP_CallSelection3,
+    MYADDON_OP_CallSelection4,
     MYADDON_PT_StorageSelectionPanel,
 ]
 
