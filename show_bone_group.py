@@ -10,12 +10,12 @@ from bpy.props import (
 
 
 bl_info = {
-    "name": "サンプル 2-7: BlenderのUIを制御するアドオン",
-    "author": "ぬっち（Nutti）",
+    "name": "myaddon_show_bone_group",
+    "author": "aobayu",
     "version": (3, 0),
-    "blender": (2, 80, 0),
+    "blender": (2, 81, 0),
     "location": "3Dビューポート > Sidebar",
-    "description": "BlenderのUIを制御するアドオン",
+    "description": "myaddon_show_bone_group",
     "warning": "",
     "support": "TESTING",
     "wiki_url": "",
@@ -29,36 +29,30 @@ class MYADDON_OP_ShowBoneGroupe_RefleshUI(bpy.types.Operator):
 
     bl_idname = "button.showbonegrouperefleshui"
     bl_label = "NOP"
-    bl_description = "何もしない"
+    bl_description = "UIを更新"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        
         scene = context.scene
-        
-        amt = bpy.data.objects[scene.show_bone_groupe_amtname]
-        for b in amt.pose.bones :
-                print( b.bone.name ) 
-                
-                
-        bone_group_to_bone_layer(amt)
+        if scene.show_bone_groupe_amtname in bpy.data.objects :
+            amt = bpy.data.objects[scene.show_bone_groupe_amtname]
+            bone_group_to_bone_layer(amt)
+        else :
+            print("invalid armature name")
         return {'FINISHED'}
+        
     
 class MYADDON_OP_ShowBoneGroupe_ShowAll(bpy.types.Operator):
 
     bl_idname = "button.showbonegroupshowall"
     bl_label = "NOP"
-    bl_description = "何もしない"
+    bl_description = " 全てを表示"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        
         scene = context.scene
-        
         amt = bpy.data.objects[scene.show_bone_groupe_amtname]
-        
         amt.data.layers = [True for i in range(32)]
-        
         return {'FINISHED'}
 
 # ボーングループをレイヤーに分ける。
@@ -67,82 +61,58 @@ def bone_group_to_bone_layer(amt):
         if b.bone_group != None :
             amt.data.bones[b.name].layers = [
                      True  if i == b.bone_group_index else False for i in range(32)]
-            
         else :
             amt.data.bones[b.name].layers = [
                      True  if i == 31 else False for i in range(32)]
             
             
-class SAMPLE27_OT_Nop(bpy.types.Operator):
-
-    bl_idname = "object.sample27_nop"
-    bl_label = "NOP"
-    bl_description = "何もしない"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        return {'FINISHED'}
 
 
-class SAMPLE27_MT_NopMenu(bpy.types.Menu):
+class MYADDON_PT_ShowBoneGroupUI(bpy.types.Panel):
 
-    bl_idname = "SAMPLE27_MT_NopMenu"
-    bl_label = "NOP メニュー"
-    bl_description = "何もしないオペレータを複数持つメニュー"
-
-    def draw(self, context):
-        layout = self.layout
-        # メニュー項目の追加
-        for i in range(3):
-            layout.operator(SAMPLE27_OT_Nop.bl_idname, text=("項目 %d" % (i)))
-
-
-# Sidebarのタブ [カスタムタブ] に、パネル [カスタムパネル] を追加
-class SAMPLE27_PT_CustomPanel(bpy.types.Panel):
-
-    bl_label = "カスタムパネル"         # パネルのヘッダに表示される文字列
+    bl_label = "ボーングループ"         # パネルのヘッダに表示される文字列
     bl_space_type = 'VIEW_3D'           # パネルを登録するスペース
     bl_region_type = 'UI'               # パネルを登録するリージョン
-    bl_category = "カスタムタブ"        # パネルを登録するタブ名
-    bl_context = "objectmode"           # パネルを表示するコンテキスト
+    #bl_category = "カスタムタブ"        # パネルを登録するタブ名
+    #bl_context = "objectmode"           # パネルを表示するコンテキスト
 
     # 本クラスの処理が実行可能かを判定する
     @classmethod
     def poll(cls, context):
         # オブジェクトが選択されているときのみメニューを表示させる
-        for o in bpy.data.objects:
-            if o.select_get():
-                return True
-        return False
-
-    # ヘッダーのカスタマイズ
-    def draw_header(self, context):
-        layout = self.layout
-        layout.label(text="", icon='PLUGIN')
-
+            
+        return True
+        
     # メニューの描画処理
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        amt = bpy.data.objects[scene.show_bone_groupe_amtname]
         
-        layout.prop(scene, "show_bone_groupe_amtname", text="プロパティ 3")
+        layout.prop(scene, "show_bone_groupe_amtname", text="arm ")
+        
         
         # ボタンを追加
         layout.operator(MYADDON_OP_ShowBoneGroupe_RefleshUI.bl_idname, text="refleshUi")
         
-        num_of_bone_groups = len( amt.pose.bone_groups )
-        
         ## ---------------------------------------------------------------------------------            
-        box = layout.box()
-        box.label(text="Selection Tools")
-        for i in range (num_of_bone_groups ) : 
-            box.prop( amt.data, 'layers', index=i, 
-                      toggle=True, text=amt.pose.bone_groups[i].name)
         
-        box.prop( amt.data, 'layers', index=31, 
-                      toggle=True, text="その他")
-        layout.operator(MYADDON_OP_ShowBoneGroupe_ShowAll.bl_idname, text="ALL")
+        if scene.show_bone_groupe_amtname in bpy.data.objects :
+            amt = bpy.data.objects[scene.show_bone_groupe_amtname]
+            
+            num_of_bone_groups = len( amt.pose.bone_groups )
+            
+            box = layout.box()
+            box.label(text="Selection Tools")
+            for i in range (num_of_bone_groups ) : 
+                box.prop( amt.data, 'layers', index=i, 
+                          toggle=True, text=amt.pose.bone_groups[i].name)
+            
+            box.prop( amt.data, 'layers', index=31, 
+                          toggle=True, text="その他")
+            layout.operator(MYADDON_OP_ShowBoneGroupe_ShowAll.bl_idname, text="ALL")
+            
+        else :
+            layout.label(text = "invalid armature name")
         ## --------------------------------------------------------------------------------
         
         '''
@@ -161,9 +131,9 @@ def init_props():
     scene = bpy.types.Scene
     
     scene.show_bone_groupe_amtname = StringProperty(
-        name="プロパティ 5",
-        description="プロパティ（bool）",
-        default='this'
+        name="armature name",
+        description="armature name",
+        default='arm'
     )
     
 
@@ -171,17 +141,11 @@ def init_props():
 # プロパティを削除
 def clear_props():
     scene = bpy.types.Scene
-    del scene.sample27_prop_int
-    del scene.sample27_prop_float
-    del scene.sample27_prop_floatv
-    del scene.sample27_prop_enum
-    del scene.sample27_prop_bool
+    del scene.show_bone_groupe_amtname
 
 
 classes = [
-    SAMPLE27_OT_Nop,
-    SAMPLE27_MT_NopMenu,
-    SAMPLE27_PT_CustomPanel,
+    MYADDON_PT_ShowBoneGroupUI,
     MYADDON_OP_ShowBoneGroupe_RefleshUI,
     MYADDON_OP_ShowBoneGroupe_ShowAll
 ]
@@ -203,3 +167,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+    #unregister()
