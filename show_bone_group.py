@@ -54,6 +54,23 @@ class MYADDON_OP_ShowBoneGroupe_ShowAll(bpy.types.Operator):
         amt = bpy.data.objects[scene.show_bone_groupe_amtname]
         amt.data.layers = [True for i in range(32)]
         return {'FINISHED'}
+    
+class MYADDON_OP_ShowBoneGroupe_HideAll(bpy.types.Operator):
+
+    bl_idname = "button.showbonegrouphideall"
+    bl_label = "NOP"
+    bl_description = " 全てを表示"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        scene = context.scene
+        amt = bpy.data.objects[scene.show_bone_groupe_amtname]
+        for i in range(32):
+            amt.data.layers[i] = False
+        # 全てのボーンレイヤーを非表示にはできないので，レイヤー30をとりあえず表示する.
+        amt.data.layers[30] = True
+        amt.data.layers[31] = False
+        return {'FINISHED'}
 
 # ボーングループをレイヤーに分ける。
 def bone_group_to_bone_layer(amt):
@@ -109,7 +126,8 @@ class MYADDON_PT_ShowBoneGroupUI(bpy.types.Panel):
             
             box.prop( amt.data, 'layers', index=31, 
                           toggle=True, text="その他")
-            layout.operator(MYADDON_OP_ShowBoneGroupe_ShowAll.bl_idname, text="ALL")
+            layout.operator(MYADDON_OP_ShowBoneGroupe_ShowAll.bl_idname, text="ALL SHOW")
+            layout.operator(MYADDON_OP_ShowBoneGroupe_HideAll.bl_idname, text="ALL HIDE")
             
         else :
             layout.label(text = "invalid armature name")
@@ -147,7 +165,8 @@ def clear_props():
 classes = [
     MYADDON_PT_ShowBoneGroupUI,
     MYADDON_OP_ShowBoneGroupe_RefleshUI,
-    MYADDON_OP_ShowBoneGroupe_ShowAll
+    MYADDON_OP_ShowBoneGroupe_ShowAll,
+    MYADDON_OP_ShowBoneGroupe_HideAll
 ]
 
 
