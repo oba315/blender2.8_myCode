@@ -18,6 +18,7 @@ bl_info = {
 # 頂点番号がはみ出したときのエラー処理
 
 import bpy
+import sys
 from bpy.props import ( IntProperty )
 
 
@@ -28,14 +29,17 @@ def storage_selection_func(index):
     old_mode = obj.mode
     bpy.ops.object.mode_set(mode='OBJECT')
         
-    selected = [v.index for v in obj.data.vertices if v.select]
-    print(selected)
     
-    # とりあえずシーンにカスタムプロパティを作るけどオブジェクトに作ったほうがいいかも？
-    scene = bpy.context.scene
-    scene["storage_selection_"+str(index)] = selected
+    objs = bpy.context.selected_objects
+    for obj in objs :
+        selected = [v.index for v in obj.data.vertices if v.select]
+        print(selected)
+        
+        # オブジェクトにカスタムプロパティを追加
+        obj["storage_selection_"+str(index)] = selected
     
     bpy.ops.object.mode_set(mode=old_mode)
+
 
 def call_selection_func(index):
     
@@ -45,10 +49,17 @@ def call_selection_func(index):
     bpy.ops.object.mode_set(mode="EDIT") #Activating Editmode
     bpy.ops.mesh.select_all(action='DESELECT')
     
-    bpy.ops.object.mode_set(mode='OBJECT')    
-    for p in bpy.context.scene["storage_selection_"+str(index)] :
-        obj.data.vertices[p].select = True
-        
+    bpy.ops.object.mode_set(mode='OBJECT')  
+    
+    for obj in bpy.context.selected_objects :
+        property_name = "storage_selection_"+str(index)
+        if property_name in obj :
+            for p in obj[property_name] :
+                obj.data.vertices[p].select = True
+        else :
+            bpy.ops.object.mode_set(mode=old_mode)
+            raise Exception("頂点が登録されていません。")
+                
     bpy.ops.object.mode_set(mode=old_mode)
 
 
